@@ -1,0 +1,76 @@
+# ─── Virtual Environments ───────────────────────────────────────────────────
+sentry_env/
+venv/
+.venv/
+env/
+ENV/
+
+# ─── Python Cache & Bytecode ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+*.so
+
+# ─── Distribution / Packaging ────────────────────────────────────────────────
+build/
+dist/
+*.egg-info/
+*.egg
+MANIFEST
+.eggs/
+wheels/
+
+# ─── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.*
+*.env
+.secrets
+
+# ─── ML Model Weights (can be large binary files) ────────────────────────────
+models/
+*.h5
+*.pt
+*.pth
+*.ckpt
+*.pb
+*.tflite
+*.onnx
+
+# ─── Jupyter Notebooks ───────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ─── OS & Editor Artifacts ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ─── Logs & Temporary Files ──────────────────────────────────────────────────
+*.log
+*.tmp
+*.bak
+*.orig
+logs/
+tmp/
+
+# ─── Test & Coverage ─────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+nosetests.xml
+coverage.xml
+
+# ─── Type Checking ───────────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+.pytype/

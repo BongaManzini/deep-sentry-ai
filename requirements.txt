@@ -1,0 +1,23 @@
+# ─── Core dependencies ────────────────────────────────────────────────────────
+
+# Video capture and processing
+opencv-python>=4.8.0
+
+# Audio capture (desktop/microphone streams)
+pyaudio>=0.2.14
+
+# WebSocket server for IPC communication with browser UI
+websockets>=12.0
+
+# Numerical computation (audio feature extraction, spectral analysis)
+numpy>=1.24.0
+
+# Scientific signal processing (spectral variance, MFCC features)
+scipy>=1.11.0
+
+# ─── Optional: ML model inference ────────────────────────────────────────────
+# Uncomment when model weights are available
+
+# torch>=2.0.0
+# torchvision>=0.15.0
+# tensorflow>=2.13.0
