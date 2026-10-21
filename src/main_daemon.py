@@ -2,52 +2,54 @@ import threading
 import asyncio
 import signal
 import sys
-import json
-import cv2
+import os
 
-# Natively map to the nested sub-packages you created
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from audio.capture_desktop import DesktopAudioStream
 from video.capture import VideoCaptureEngine
 from network.ipc_server import IPCServer
 
-class SentryCoreEngine:
-    def __init__(self):
-        self.ipc = IPCServer(host="127.0.0.1", port=8888)
+class SentryDaemonEngine:
+    def __init__(self, host: str = "127.0.0.1", port: int = 8888):
+        self.loop = None
+        self.ipc = IPCServer(host=host, port=port)
         self.audio = DesktopAudioStream(on_data_callback=self.handle_audio_metrics)
         self.video = VideoCaptureEngine(on_frame_callback=self.handle_video_metrics)
 
+    def _dispatch_broadcast(self, payload):
+        if self.loop and self.loop.is_running():
+            asyncio.run_coroutine_threadsafe(self.ipc.broadcast(payload), self.loop)
+
     def handle_audio_metrics(self, risk_score):
-        sys.stdout.write(f"\r[AUDIO FILTER] Synthetic Risk Factor: {risk_score}% | Connected Dashboards: {len(self.ipc.connected_clients)}")
+        sys.stdout.write(f"\r[AUDIO FILTER] Synthetic Risk: {risk_score}% | Active Dashboards: {len(self.ipc.connected_clients)} ")
         sys.stdout.flush()
         self._dispatch_broadcast({"channel": "audio", "risk": risk_score})
 
     def handle_video_metrics(self, risk_score):
         if risk_score > 50:
-            sys.stdout.write(f"\r[VIDEO ATTACK DETECTED] Spatial liveness mesh tracking breached baseline parameters! ")
+            sys.stdout.write(f"\r[VIDEO ATTACK DETECTED] Biometric liveness breach! Risk: {risk_score}% ")
             sys.stdout.flush()
         self._dispatch_broadcast({"channel": "video", "risk": risk_score})
 
-    def _dispatch_broadcast(self, payload):
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                loop.create_task(self.ipc.broadcast(payload))
-        except RuntimeError:
-            asyncio.run(self.ipc.broadcast(payload))
-
-    def shutdown(self, signum, frame):
-        print("\nReleasing local multimedia locks. Shutting down Sentry daemon process...")
+    def shutdown(self, signum=None, frame=None):
+        print("\nReleasing multimedia locks. Shutting down Sentry daemon...")
         self.audio.stop()
         self.video.stop()
         sys.exit(0)
 
+    async def run(self):
+        self.loop = asyncio.get_running_loop()
+        print("🛡️ Booting Deepfake Sentry Native Core Service...")
+        threading.Thread(target=self.audio.start, daemon=True).start()
+        threading.Thread(target=self.video.start, daemon=True).start()
+        print("🟢 Identity Firewall Daemon Running. Listening on port 8888.")
+        await self.ipc.start_server()
+
 if __name__ == "__main__":
-    engine = SentryCoreEngine()
+    engine = SentryDaemonEngine()
     signal.signal(signal.SIGINT, engine.shutdown)
-    
-    print("🛡️ Booting Deepfake Sentry Native Core Service on Linux...")
-    threading.Thread(target=engine.audio.start, daemon=True).start()
-    threading.Thread(target=engine.video.start, daemon=True).start()
-    
-    print("🟢 Identity Firewall Daemon Running. Broadcasters Listening on Local Loopback Port 8888.")
-    asyncio.run(engine.ipc.start_server())
+    try:
+        asyncio.run(engine.run())
+    except (KeyboardInterrupt, SystemExit):
+        engine.shutdown()

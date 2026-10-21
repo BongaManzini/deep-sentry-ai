@@ -125,3 +125,118 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-800 flex items-center justify-between">
+                    <span class="text-xs text-gray-500 font-mono">Status: <span id="telemetryStatus" class="text-gray-400">Monitoring Active</span></span>
+                    <button id="reconnectBtn" class="px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 text-xs font-mono transition-colors border border-blue-500/30">Reconnect Daemon</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const connectionBadge = document.getElementById('connectionBadge');
+        const videoStatus = document.getElementById('videoStatus');
+        const videoTelemetry = document.getElementById('videoTelemetry');
+        const videoHUDAlert = document.getElementById('videoHUDAlert');
+        const audioStatus = document.getElementById('audioStatus');
+        const varianceValue = document.getElementById('varianceValue');
+        const riskDisplay = document.getElementById('riskDisplay');
+        const riskLabel = document.getElementById('riskLabel');
+        const audioRiskPercent = document.getElementById('audioRiskPercent');
+        const audioBar = document.getElementById('audioBar');
+        const videoRiskPercent = document.getElementById('videoRiskPercent');
+        const videoBar = document.getElementById('videoBar');
+        const reconnectBtn = document.getElementById('reconnectBtn');
+
+        let ws = null;
+        let audioRisk = 0;
+        let videoRisk = 0;
+
+        function updateCompositeRisk() {
+            const composite = Math.round((audioRisk * 0.45) + (videoRisk * 0.55));
+            riskDisplay.textContent = composite + '%';
+
+            if (composite > 55) {
+                riskDisplay.className = 'text-6xl font-black text-red-500 my-2 font-mono transition-all duration-300 animate-pulse';
+                riskLabel.className = 'text-sm font-semibold text-red-400 tracking-wide transition-all duration-300';
+                riskLabel.textContent = 'HIGH SYNTHETIC SPOOF PROBABILITY';
+            } else if (composite > 30) {
+                riskDisplay.className = 'text-6xl font-black text-amber-400 my-2 font-mono transition-all duration-300';
+                riskLabel.className = 'text-sm font-semibold text-amber-400 tracking-wide transition-all duration-300';
+                riskLabel.textContent = 'ELEVATED BIOMETRIC VARIANCE';
+            } else {
+                riskDisplay.className = 'text-6xl font-black text-emerald-400 my-2 font-mono transition-all duration-300';
+                riskLabel.className = 'text-sm font-semibold text-emerald-400 tracking-wide transition-all duration-300';
+                riskLabel.textContent = 'SECURE HUMAN TELEMETRY';
+            }
+        }
+
+        function connect() {
+            try {
+                ws = new WebSocket('ws://127.0.0.1:8888');
+
+                ws.onopen = () => {
+                    connectionBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5';
+                    connectionBadge.innerHTML = '<span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span> ONLINE DAEMON';
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.channel === 'audio') {
+                            audioRisk = data.risk;
+                            audioRiskPercent.textContent = audioRisk + '%';
+                            audioBar.style.width = audioRisk + '%';
+                            audioStatus.textContent = 'ACTIVE';
+                            audioStatus.className = 'text-xs font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20';
+                            varianceValue.textContent = (0.0125 + (audioRisk * 0.0008)).toFixed(4);
+                        } else if (data.channel === 'video') {
+                            videoRisk = data.risk;
+                            videoRiskPercent.textContent = videoRisk + '%';
+                            videoBar.style.width = videoRisk + '%';
+                            videoTelemetry.textContent = `Spatial liveness variance: ${videoRisk}% anomaly factor`;
+
+                            if (videoRisk > 50) {
+                                videoStatus.textContent = 'ANOMALY DETECTED';
+                                videoStatus.className = 'text-xs font-mono text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20';
+                                videoHUDAlert.classList.remove('hidden');
+                                videoHUDAlert.classList.add('flex');
+                            } else {
+                                videoStatus.textContent = 'TARGET COMPLIANT';
+                                videoStatus.className = 'text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20';
+                                videoHUDAlert.classList.add('hidden');
+                                videoHUDAlert.classList.remove('flex');
+                            }
+                        }
+                        updateCompositeRisk();
+                    } catch (err) {
+                        console.error('Telemetry parse error:', err);
+                    }
+                };
+
+                ws.onclose = () => {
+                    connectionBadge.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1.5';
+                    connectionBadge.innerHTML = '<span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span> OFFLINE DAEMON';
+                    audioStatus.textContent = 'IDLE';
+                    audioStatus.className = 'text-xs font-mono text-gray-400 bg-gray-800 px-2 py-0.5 rounded';
+                };
+
+                ws.onerror = () => {
+                    ws.close();
+                };
+            } catch (e) {
+                console.warn('WebSocket connection attempt failed:', e);
+            }
+        }
+
+        reconnectBtn.addEventListener('click', connect);
+        connect();
+        setInterval(() => {
+            if (!ws || ws.readyState === WebSocket.CLOSED) {
+                connect();
+            }
+        }, 4000);
+    </script>
+</body>
+</html>
