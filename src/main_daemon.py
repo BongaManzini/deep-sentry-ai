@@ -40,10 +40,10 @@ class SentryDaemonEngine:
 
     async def run(self):
         self.loop = asyncio.get_running_loop()
-        print("🛡️ Booting Deepfake Sentry Native Core Service...")
+        print("️ Booting Deepfake Sentry Native Core Service...")
         threading.Thread(target=self.audio.start, daemon=True).start()
         threading.Thread(target=self.video.start, daemon=True).start()
-        print("🟢 Identity Firewall Daemon Running. Listening on port 8888.")
+        print(" Identity Firewall Daemon Running. Listening on port 8888.")
         await self.ipc.start_server()
 
 if __name__ == "__main__":

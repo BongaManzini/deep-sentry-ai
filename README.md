@@ -41,18 +41,18 @@ It is designed to be invisible to the caller yet always active, running silently
 
 ```
 DeepSentryAI/
-├── index.html              # Call center console UI
-├── requirements.txt        # Python dependencies
+├── index.html       # Call center console UI
+├── requirements.txt    # Python dependencies
 ├── src/
-│   ├── main.py             # Core engine entry point
-│   ├── main_daemon.py      # Full daemon with verbose terminal output
-│   ├── audio/
-│   │   └── capture_desktop.py   # Desktop audio stream & analysis
-│   ├── video/
-│   │   └── capture.py           # Webcam frame capture & analysis
-│   └── network/
-│       └── ipc_server.py        # WebSocket IPC broadcast server
-└── models/                 # (gitignored) ML model weights
+│  ├── main.py       # Core engine entry point
+│  ├── main_daemon.py   # Full daemon with verbose terminal output
+│  ├── audio/
+│  │  └── capture_desktop.py  # Desktop audio stream & analysis
+│  ├── video/
+│  │  └── capture.py      # Webcam frame capture & analysis
+│  └── network/
+│    └── ipc_server.py    # WebSocket IPC broadcast server
+└── models/         # (gitignored) ML model weights
 ```
 
 ---
@@ -76,7 +76,7 @@ cd DeepSentryAI
 
 ```bash
 python -m venv sentry_env
-source sentry_env/bin/activate        # Linux / macOS
+source sentry_env/bin/activate    # Linux / macOS
 # sentry_env\Scripts\activate         # Windows
 ```
 
@@ -120,9 +120,9 @@ Once running, the system operates automatically:
 
 | Score | Status |
 |-------|--------|
-| 0–30% | ✅ Target Compliant |
-| 31–60% | ⚠️ Elevated Suspicion |
-| 61–100% | 🚨 Biometric Tampering Detected |
+| 0–30% | Target Compliant |
+| 31–60% | ️ Elevated Suspicion |
+| 61–100% | Biometric Tampering Detected |
 
 ---
 
